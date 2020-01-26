@@ -31,7 +31,7 @@ def clear_scren():
     else:
         _ = system('clear')
     
-hosts = ['192.168.10.1', '8.8.8.8','google.com', '192.168.11.234']
+hosts = ['192.168.10.1', '8.8.8.8','google.com', '192.168.11.234', '1.1.1.1', 'internetbeacon.msedge.net']
 # hosts = ['rassgat.ibala']
 def clean_exit(threads):
     
@@ -55,13 +55,13 @@ def main_program():
     while check_threads(threads):
         clear_scren()
         try:
-            print(f'\033[95m{"Hostname":<15}{"IP address":<15}{"C":^3} {"min":<10s} {"max":<10s} {"avg":<10s} {"PL":<10s} {"seq":<10s} \x1b[0m')
+            print(f'\033[95m{"Hostname":<20}{"IP address":<15}{"C":^3} {"min":<10s} {"max":<10s} {"avg":<10s} {"PL":<10s} {"seq":<10s} \x1b[0m')
             for t in threads:
                 if t.pinger.response.ret_code == 1:
                     textbg = Color.B_Red
                 else:
                     textbg = Color.B_Default                
-                print(f''+textbg+f'{t.host:<15}{t.pinger.dest_ip:<15}{t.pinger.response.ret_code:^3} {t.pinger.response.min_rtt:<10.2f} {t.pinger.response.max_rtt:<10.2f} {t.pinger.response.avg_rtt:<10.2f} {t.pinger.response.packet_lost:<10} {t.pinger.seq_number:<10}\x1b[49m')
+                print(f''+textbg+f'{t.host[:19]:<20}{t.pinger.dest_ip:<15}{t.pinger.response.ret_code:^3} {t.pinger.response.min_rtt:<10.2f} {t.pinger.response.max_rtt:<10.2f} {t.pinger.response.avg_rtt:<10.2f} {t.pinger.response.packet_lost:<10} {t.pinger.seq_number:<10}\x1b[49m')
                 # print('\x1b[49m')
             time.sleep(1) # catch keyboardinterrupt and clean exit
         except KeyboardInterrupt:
