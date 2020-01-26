@@ -1,8 +1,9 @@
 # pypinger.py
 from threading import Thread
-from queue import Queue, Empty
-import pinglib, sys, time
-from colors import *
+from multiprocessing import Process, Queue, JoinableQueue
+from pinglib import Ping
+import sys, time
+from colors import Color
 from os import system, name
 
 class PingWorker(Thread):
@@ -11,7 +12,7 @@ class PingWorker(Thread):
         self.host = host
         self.name = name
         self.kill = False
-        self.pinger = pinglib.Ping(host, timeout=400, packet_size=55, *args, **kwargs)
+        self.pinger = Ping(host, timeout=400, packet_size=55, *args, **kwargs)
         self.pingres = None
 
     def run(self):
@@ -19,7 +20,6 @@ class PingWorker(Thread):
             if self.kill:
                 return        
             self.pingres = self.pinger.run(1)
-            # print(f'host {self.host} avr_rtt {self.res}')
 
     def join(self):
         self.kill = True
@@ -31,26 +31,24 @@ def clear_scren():
     else:
         _ = system('clear')
     
-hosts = ['192.168.10.1', '8.8.8.8','google.com', '192.168.11.234', '1.1.1.1', 'internetbeacon.msedge.net']
-# hosts = ['rassgat.ibala']
-def clean_exit(threads):
-    
+def clean_exit(threads):   
     for t in threads:
         t.join()
-        # t.kill = True
 
 def check_threads(threads):
     return True in [t.isAlive() for t in threads]
 
 
 def main_program():
+    hosts = ['192.168.10.1', '8.8.8.8','google.com', '192.168.11.234', '1.1.1.1', 'internetbeacon.msedge.net']
     
     threads = list()
+    #threads = []
     for host in hosts:
         pinger = PingWorker(name=host, host=host)
+        pinger.setDaemon(True)
         threads.append(pinger)
-    for t in threads:
-        t.start()
+        pinger.start()
     
     while check_threads(threads):
         clear_scren()
@@ -62,11 +60,10 @@ def main_program():
                 else:
                     textbg = Color.B_Default                
                 print(f''+textbg+f'{t.host[:19]:<20}{t.pinger.dest_ip:<15}{t.pinger.response.ret_code:^3} {t.pinger.response.min_rtt:<10.2f} {t.pinger.response.max_rtt:<10.2f} {t.pinger.response.avg_rtt:<10.2f} {t.pinger.response.packet_lost:<10} {t.pinger.seq_number:<10}\x1b[49m')
-                # print('\x1b[49m')
             time.sleep(1) # catch keyboardinterrupt and clean exit
         except KeyboardInterrupt:
             clean_exit(threads)
 
 if __name__ == '__main__':
-    host_queue = Queue()
+    # host_queue = Queue()
     main_program()

@@ -91,7 +91,7 @@ def to_ip(addr):
         return addr
     try:
         hostname = socket.gethostbyname(addr)
-    except Exception as e:
+    except:
         hostname = '<dnserror>'
     return hostname # socket.gethostbyname(addr)
 
@@ -164,104 +164,34 @@ class Ping(object):
     #pylint: enable-msg=too-many-instance-attributes,too-many-arguments,too-few-public-methods
 
     def _print_start(self):
-        msg = "\nPYTHON-PING %s (%s): %d data bytes" % (self.destination, self.dest_ip, \
-            self.packet_size)
-        if self.quiet_output:
-            self.response.output.append(msg)
-        else:
-            print(msg)
+        pass
 
     def _print_unknown_host(self, _e):
-        msg = "\nPYTHON-PING: Unknown host: %s (%s)\n" % (self.destination, _e.args[1])
-        if self.quiet_output:
-            self.response.output.append(msg)
-            self.response.ret_code = 1
-        else:
-            print(msg)
-
+        self.response.ret_code = 1
         raise Exception("unknown_host")
         #sys.exit(-1)
 
     def _print_success(self, delay, _ip, packet_size, ip_header, icmp_header):
-    #pylint: disable-msg=too-many-arguments
-        if _ip == self.destination:
-            from_info = _ip
-        else:
-            from_info = "%s (%s)" % (self.destination, _ip)
-
-        msg = "%d bytes from %s: icmp_seq=%d ttl=%d time=%.1f ms" % (packet_size, \
-            from_info, icmp_header["seq_number"], ip_header["ttl"], delay)
-
-        if self.quiet_output:
-            self.response.output.append(msg)
-            self.response.ret_code = 0
-        else:
-            print(msg)
-        #print("IP header: %r" % ip_header)
-        #print("ICMP header: %r" % icmp_header)
-    #pylint: enable-msg=too-many-arguments
+        self.response.ret_code = 0
 
     def _print_failed(self):
-        msg = "Request timed out."
-
-        if self.quiet_output:
-            self.response.output.append(msg)
-            self.response.ret_code = 1
-        else:
-            print(msg)
+        self.response.ret_code = 1
 
     def _print_exit(self):
-        msg = "\n----%s PYTHON PING Statistics----" % (self.destination)
-
-        if self.quiet_output:
-            self.response.output.append(msg)
-        else:
-            print(msg)
-
         lost_count = self.send_count - self.receive_count
-        lost_rate = 0
-        #print("%i packets lost" % lost_count)
-        if self.send_count > 1:
-            lost_rate = float(lost_count) / self.send_count * 100.0
-
-        msg = "%d packets transmitted, %d packets received, %0.1f%% packet loss" % \
-        (self.send_count, self.receive_count, lost_rate)
-
-        if self.quiet_output:
-            self.response.output.append(msg)
-            self.response.packet_lost = lost_count
-        else:
-            print(msg)
+        self.response.packet_lost = lost_count
 
         if self.receive_count > 0:
-            msg = "round-trip (ms)  min/avg/max = %0.3f/%0.3f/%0.3f" % (self.min_time, \
-                self.total_time / self.receive_count, self.max_time)
-            if self.quiet_output:
-                self.response.min_rtt = self.min_time # '%.3f' % self.min_time
-                self.response.avg_rtt = self.total_time / self.receive_count # '%.3f' % (self.total_time / self.receive_count)
-                self.response.max_rtt = self.max_time # '%.3f' % self.max_time
-                self.response.output.append(msg)
-            else:
-                print(msg)
-
-        if self.quiet_output:
-            self.response.output.append('\n')
-        else:
-            print('')
+            self.response.min_rtt = self.min_time # '%.3f' % self.min_time
+            self.response.avg_rtt = self.total_time / self.receive_count # '%.3f' % (self.total_time / self.receive_count)
+            self.response.max_rtt = self.max_time # '%.3f' % self.max_time
 
     def signal_handler(self, signum):
         """
         Handle print_exit via signals
         """
+        self.response.ret_code = 0
         self._print_exit()
-        msg = "\n(Terminated with signal %d)\n" % (signum)
-
-        if self.quiet_output:
-            self.response.output.append(msg)
-            self.response.ret_code = 0
-        else:
-            print(msg)
-
         sys.exit(0)
 
     def _setup_signal_handler(self):
@@ -355,14 +285,9 @@ class Ping(object):
         checksum = 0
 
         # Make a dummy header with a 0 checksum.
-        try:
-            header = struct.pack(
-                "!BBHHH", ICMP_ECHO, 0, checksum, self.own_id, self.seq_number
-            )
-        except Exception as e:
-            print(e)
-            print(f'checksum {checksum} own_id {self.own_id} seq_number {self.seq_number}')
-
+        header = struct.pack(
+            "!BBHHH", ICMP_ECHO, 0, checksum, self.own_id, self.seq_number
+        )
         pad_bytes = []
         start_val = 0x42
         for i in range(start_val, start_val + (self.packet_size)):
@@ -386,10 +311,8 @@ class Ping(object):
             # Port number is irrelevant for ICMP
             current_socket.sendto(packet, (self.destination, 1))
         except socket.error as _e:
-            self.response.output.append("General failure (%s)" % (_e.args[1]))
             current_socket.close()
             return None
-
         return send_time
 
     def receive_one_ping(self, current_socket):
