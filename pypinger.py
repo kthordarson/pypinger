@@ -12,7 +12,7 @@ class PingWorker(Thread):
         self.host = host
         self.name = name
         self.kill = False
-        self.pinger = Ping(host, timeout=400, packet_size=55, *args, **kwargs)
+        self.pinger = Ping(host, timeout=100, packet_size=55, *args, **kwargs)
         self.pingres = None
 
     def run(self):
@@ -40,8 +40,10 @@ def check_threads(threads):
 
 
 def main_program():
-    hosts = ['192.168.10.1', '8.8.8.8','google.com', '192.168.11.234', '1.1.1.1', 'internetbeacon.msedge.net']
-    
+    if len(sys.argv) < 2:
+        hosts = ['192.168.10.1', '8.8.8.8','google.com', '192.168.11.234', '1.1.1.1', 'internetbeacon.msedge.net']
+    else:
+        hosts = sys.argv[1:]
     threads = list()
     #threads = []
     for host in hosts:

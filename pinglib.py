@@ -219,8 +219,8 @@ class Ping(object):
                 delay = 0
 
             # Pause for the remainder of the MAX_SLEEP period (if applicable)
-            if MAX_SLEEP > delay:
-                time.sleep((MAX_SLEEP - delay) / 1000.0)
+            #if MAX_SLEEP > delay:
+            #    time.sleep((MAX_SLEEP - delay) / 1000.0)
 
         self._print_exit()
         if self.quiet_output:
