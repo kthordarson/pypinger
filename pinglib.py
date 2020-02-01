@@ -85,7 +85,7 @@ def is_valid_ip4_address(addr):
             return False
     return True
 
-def to_ip(addr):
+def to_ip_1(addr):
     """ convert to ip """
     if is_valid_ip4_address(addr):
         return addr
@@ -95,7 +95,7 @@ def to_ip(addr):
         hostname = '<dnserror>'
     return hostname # socket.gethostbyname(addr)
 
-def to_ip_org(addr):
+def to_ip(addr):
     """ convert to ip """
     if is_valid_ip4_address(addr):
         return addr
@@ -148,8 +148,7 @@ class Ping(object):
 
         try:
             self.dest_ip = to_ip(self.destination)
-            if quiet_output:
-                self.response.destination_ip = self.dest_ip
+            self.response.destination_ip = self.dest_ip
         except socket.gaierror as _e:
             self._print_unknown_host(_e)
         else:
@@ -167,8 +166,9 @@ class Ping(object):
         pass
 
     def _print_unknown_host(self, _e):
-        self.response.ret_code = 1
-        raise Exception("unknown_host")
+        self.dest_ip = '0.0.0.0'
+        self.response.ret_code = 2
+        # raise Exception("unknown_host")
         #sys.exit(-1)
 
     def _print_success(self, delay, _ip, packet_size, ip_header, icmp_header):
