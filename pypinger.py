@@ -1,4 +1,5 @@
 # pypinger.py
+# testing
 from threading import Thread
 from multiprocessing import Process, Queue, JoinableQueue
 from pinglib import Ping
